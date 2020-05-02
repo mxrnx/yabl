@@ -20,6 +20,9 @@ func expandList(vs []tokenizer.Token) []SurfaceExpr {
 func Parse(t tokenizer.Token) SurfaceExpr {
 	switch t.Kind {
 	case tokenizer.TokenList:
+		if t.Children[0].Content == "list" {
+			return SurfaceExpr{Kind: ListExpr, Args: expandList(t.Children[1:])}
+		}
 		if len(t.Children) == 0 {
 			return SurfaceExpr{Kind: NilExpr}
 		}
@@ -31,10 +34,10 @@ func Parse(t tokenizer.Token) SurfaceExpr {
 				return SurfaceExpr{Kind: SubExpr, Args: []SurfaceExpr{Parse(t.Children[1]), Parse(t.Children[2])}}
 			case "*":
 				return SurfaceExpr{Kind: MultExpr, Args: []SurfaceExpr{Parse(t.Children[1]), Parse(t.Children[2])}}
-			case "list":
-				return SurfaceExpr{Kind: ListExpr, Args: expandList(t.Children[1:])}
 			case "cons":
 				return SurfaceExpr{Kind: ConsExpr, Args: []SurfaceExpr{Parse(t.Children[1]), Parse(t.Children[2])}}
+			default:
+				return parseException("illegal first token in list expression: " + t.Children[0].Content)
 			}
 		}
 
@@ -48,5 +51,5 @@ func Parse(t tokenizer.Token) SurfaceExpr {
 		return SurfaceExpr{Kind: NumExpr, Num: c}
 	}
 
-	return parseException("unparsable token: " + t.Content)
+	return parseException("unparsable token")
 }
