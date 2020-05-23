@@ -1,6 +1,7 @@
 package parser
 
 import (
+	. "github.com/knarka/yabl/expr"
 	"github.com/knarka/yabl/tokenizer"
 	"strconv"
 )
@@ -20,35 +21,44 @@ func expandList(vs []tokenizer.Token) []SurfaceExpr {
 func Parse(t tokenizer.Token) SurfaceExpr {
 	switch t.Kind {
 	case tokenizer.TokenList:
-		if t.Children[0].Content == "list" {
-			return SurfaceExpr{Kind: ListExpr, Args: expandList(t.Children[1:])}
-		}
 		if len(t.Children) == 0 {
-			return SurfaceExpr{Kind: NilExpr}
+			return SNil()
+		}
+		if t.Children[0].Content == "list" {
+			return SList(expandList(t.Children[1:]))
 		}
 		if len(t.Children) == 3 {
 			switch t.Children[0].Content {
 			case "+":
-				return SurfaceExpr{Kind: PlusExpr, Args: []SurfaceExpr{Parse(t.Children[1]), Parse(t.Children[2])}}
+				return SAdd(Parse(t.Children[1]), Parse(t.Children[2]))
 			case "-":
-				return SurfaceExpr{Kind: SubExpr, Args: []SurfaceExpr{Parse(t.Children[1]), Parse(t.Children[2])}}
+				return SSub(Parse(t.Children[1]), Parse(t.Children[2]))
 			case "*":
-				return SurfaceExpr{Kind: MultExpr, Args: []SurfaceExpr{Parse(t.Children[1]), Parse(t.Children[2])}}
+				return SMult(Parse(t.Children[1]), Parse(t.Children[2]))
 			case "cons":
-				return SurfaceExpr{Kind: ConsExpr, Args: []SurfaceExpr{Parse(t.Children[1]), Parse(t.Children[2])}}
+				return SCons(Parse(t.Children[1]), Parse(t.Children[2]))
 			default:
 				return parseException("illegal first token in list expression: " + t.Children[0].Content)
 			}
 		}
 
 	case tokenizer.TokenSym:
-		return SurfaceExpr{Kind: NameExpr, Name: t.Content}
+		switch t.Content {
+		case "nil":
+			return SNil()
+		case "true":
+			return STrue()
+		case "false":
+			return SFalse()
+		default:
+			return SName(t.Content)
+		}
 	case tokenizer.TokenNum:
-		c, err := strconv.Atoi(t.Content)
+		n, err := strconv.Atoi(t.Content)
 		if err != nil {
 			panic(err)
 		}
-		return SurfaceExpr{Kind: NumExpr, Num: c}
+		return SNum(n)
 	}
 
 	return parseException("unparsable token")

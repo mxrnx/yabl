@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/knarka/yabl/desugarer"
-	"github.com/knarka/yabl/parser"
-	"github.com/knarka/yabl/tokenizer"
+	"bufio"
+	"fmt"
+	"github.com/knarka/yabl/interpreter"
 	"io/ioutil"
 	"log"
 	"os"
@@ -26,7 +26,6 @@ func getFileContents(fn string) string {
 	}
 	defer file.Close()
 
-
 	bytes, err := ioutil.ReadAll(file)
 	if err != nil {
 		log.Println("error: could not read file " + fn)
@@ -34,6 +33,15 @@ func getFileContents(fn string) string {
 	}
 
 	return string(bytes)
+}
+
+func repl() {
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("o` ")
+		code, _ := reader.ReadString('\n')
+		fmt.Println(interpreter.Interpret(code).Pretty())
+	}
 }
 
 func main() {
@@ -44,5 +52,9 @@ func main() {
 
 	fn := os.Args[1]
 
-	log.Printf("%#v", desugarer.Desugar(parser.Parse(tokenizer.Tokenize(getFileContents(fn)))))
+	if fn == "--repl" {
+		repl()
+	}
+
+	log.Printf("%#v", interpreter.Interpret(getFileContents(fn)))
 }

@@ -1,31 +1,36 @@
 package desugarer
 
 import (
-	"github.com/knarka/yabl/parser"
+	. "github.com/knarka/yabl/expr"
 )
 
-func Desugar(expr parser.SurfaceExpr) CoreExpr {
-	switch expr.Kind {
-	case parser.PlusExpr:
-		return CoreExpr{Kind: PlusExpr, Args: []CoreExpr{Desugar(expr.Args[0]), Desugar(expr.Args[1])}}
-	case parser.SubExpr:
-		right := Desugar(expr.Args[1])
-		right.Num *= -1 // assume type checker guarantees this is a NumExpr
-		return CoreExpr{Kind: PlusExpr, Args: []CoreExpr{Desugar(expr.Args[0]), right}}
-	case parser.MultExpr:
-		return CoreExpr{Kind: MultExpr, Args: []CoreExpr{Desugar(expr.Args[0]), Desugar(expr.Args[1])}}
-	case parser.ConsExpr:
-		return CoreExpr{Kind: ConsExpr, Args: []CoreExpr{Desugar(expr.Args[0]), Desugar(expr.Args[1])}}
-	case parser.ListExpr:
-		if len(expr.Args) == 0 {
-			return CoreExpr{Kind: NilExpr}
+func Desugar(surfaceExpr SurfaceExpr) CoreExpr {
+	switch surfaceExpr.Kind {
+	case ExprAdd:
+		return CAdd(Desugar(surfaceExpr.First()), Desugar(surfaceExpr.Second()))
+	case ExprSub:
+		return CAdd(Desugar(surfaceExpr.First()), CMult(CNum(-1), Desugar(surfaceExpr.Second())))
+	case ExprMult:
+		return CMult(Desugar(surfaceExpr.First()), Desugar(surfaceExpr.Second()))
+	case ExprCons:
+		return CCons(Desugar(surfaceExpr.First()), Desugar(surfaceExpr.Second()))
+	case ExprList:
+		if len(surfaceExpr.List()) == 0 {
+			return CNil()
 		} else {
-			return CoreExpr{Kind: ConsExpr, Args: []CoreExpr{Desugar(expr.Args[0]), Desugar(parser.SurfaceExpr{Kind: parser.ListExpr, Args: expr.Args[1:]})}}
+			return CCons(Desugar(surfaceExpr.First()), Desugar(SList(surfaceExpr.List()[1:])))
 		}
-	case parser.NumExpr:
-		return CoreExpr{Kind: NumExpr, Num: expr.Num}
-	case parser.NameExpr:
-		return CoreExpr{Kind: NameExpr, Name: expr.Name}
+	case ExprNum:
+		return CNum(surfaceExpr.Num())
+	case ExprName:
+		return CName(surfaceExpr.Name())
+	case ExprNil:
+		return CNil()
+	case ExprTrue:
+		return CBool(true)
+	case ExprFalse:
+		return CBool(false)
 	}
-	return CoreExpr{Kind: UndefinedExpr}
+
+	panic("desugar: no such type")
 }

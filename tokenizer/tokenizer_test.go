@@ -90,3 +90,13 @@ func TestTokenizeMalformedList(t *testing.T) {
 
 	Tokenize("())")
 }
+
+func TestTokenizeUnmatchedParen(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("expected panic on malformed list")
+		}
+	}()
+
+	Tokenize(")")
+}
