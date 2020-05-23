@@ -40,7 +40,7 @@ func repl() {
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print("o` ")
 		code, _ := reader.ReadString('\n')
-		fmt.Println(interpreter.Interpret(code).Pretty())
+		log.Println(interpreter.Interpret(code).Pretty())
 	}
 }
 
@@ -56,5 +56,5 @@ func main() {
 		repl()
 	}
 
-	log.Printf("%#v", interpreter.Interpret(getFileContents(fn)))
+	fmt.Println(interpreter.Interpret(getFileContents(fn)).Pretty())
 }
