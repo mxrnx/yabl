@@ -7,7 +7,7 @@ os:
 
 jobs:
         include:
-                name: "build"
-                script: go build
-                name: "unit tests"
-                script: go test -v ./...
+                - name: "go build"
+                  script: go build
+                - name: "go test"
+                  script: go test -v ./...
