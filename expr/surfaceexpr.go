@@ -2,29 +2,51 @@ package expr
 
 type SurfaceExpr struct {
 	Kind    uint8
-	Content interface{}
+	content interface{}
+}
+
+type SurfaceFunction struct {
+	Params []string
+	Body   SurfaceExpr
+}
+
+type SurfaceApplication struct {
+	Function SurfaceExpr
+	Args     []SurfaceExpr
 }
 
 func (s SurfaceExpr) First() SurfaceExpr {
-	t := s.Content.([]SurfaceExpr)
+	t := s.content.([]SurfaceExpr)
 	return t[0]
 }
 
 func (s SurfaceExpr) Second() SurfaceExpr {
-	t := s.Content.([]SurfaceExpr)
+	t := s.content.([]SurfaceExpr)
 	return t[1]
 }
 
 func (s SurfaceExpr) List() []SurfaceExpr {
-	return s.Content.([]SurfaceExpr)
+	return s.content.([]SurfaceExpr)
+}
+
+func (s SurfaceExpr) Expr() SurfaceExpr {
+	return s.content.(SurfaceExpr)
 }
 
 func (s SurfaceExpr) Num() int {
-	return s.Content.(int)
+	return s.content.(int)
 }
 
 func (s SurfaceExpr) Name() string {
-	return s.Content.(string)
+	return s.content.(string)
+}
+
+func (s SurfaceExpr) Fn() SurfaceFunction {
+	return s.content.(SurfaceFunction)
+}
+
+func (s SurfaceExpr) App() SurfaceApplication {
+	return s.content.(SurfaceApplication)
 }
 
 func SNil() SurfaceExpr {
@@ -64,5 +86,21 @@ func SCons(a, b SurfaceExpr) SurfaceExpr {
 }
 
 func SList(x []SurfaceExpr) SurfaceExpr {
-	return SurfaceExpr{ExprList, x}
+	return SurfaceExpr{ExprLst, x}
+}
+
+func SFst(c SurfaceExpr) SurfaceExpr {
+	return SurfaceExpr{ExprFst, c}
+}
+
+func SSnd(c SurfaceExpr) SurfaceExpr {
+	return SurfaceExpr{ExprSnd, c}
+}
+
+func SFn(params []string, body SurfaceExpr) SurfaceExpr {
+	return SurfaceExpr{ExprFn, SurfaceFunction{params, body}}
+}
+
+func SApp(function SurfaceExpr, args []SurfaceExpr) SurfaceExpr {
+	return SurfaceExpr{ExprApp, SurfaceApplication{function, args}}
 }

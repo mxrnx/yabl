@@ -9,10 +9,14 @@ const (
 	ExprAdd
 	ExprMult
 	ExprCons
+	ExprFst
+	ExprSnd
+	ExprFn
+	ExprApp
 
 	// sugar
 	ExprSub
-	ExprList
+	ExprLst
 	ExprTrue
 	ExprFalse
 )

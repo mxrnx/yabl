@@ -64,7 +64,7 @@ func standardizeTokens(elements []string) ([]string, Token) {
 }
 
 func Tokenize(input string) Token {
-	input = string(regexp.MustCompile(`'\(`).ReplaceAll([]byte(input), []byte("(list ")))
+	input = string(regexp.MustCompile(`'\(`).ReplaceAll([]byte(input), []byte("(lst ")))
 	input = string(regexp.MustCompile(`\(`).ReplaceAll([]byte(input), []byte("( ")))
 	input = string(regexp.MustCompile(`\)`).ReplaceAll([]byte(input), []byte(" )")))
 	elements := regexp.MustCompile(`\s`).Split(input, -1)

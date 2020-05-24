@@ -2,29 +2,51 @@ package expr
 
 type CoreExpr struct {
 	Kind    uint8
-	Content interface{}
+	content interface{}
 }
 
-func (c CoreExpr) First() CoreExpr {
-	t := c.Content.([]CoreExpr)
+type CoreFunction struct {
+	Params []string
+	Body   CoreExpr
+}
+
+type CoreApplication struct {
+	Function CoreExpr
+	Args     []CoreExpr
+}
+
+func (c CoreExpr) Head() CoreExpr {
+	t := c.content.([]CoreExpr)
 	return t[0]
 }
 
-func (c CoreExpr) Second() CoreExpr {
-	t := c.Content.([]CoreExpr)
+func (c CoreExpr) Tail() CoreExpr {
+	t := c.content.([]CoreExpr)
 	return t[1]
 }
 
+func (c CoreExpr) Expr() CoreExpr {
+	return c.content.(CoreExpr)
+}
+
 func (c CoreExpr) Num() int {
-	return c.Content.(int)
+	return c.content.(int)
 }
 
 func (c CoreExpr) Bool() bool {
-	return c.Content.(bool)
+	return c.content.(bool)
 }
 
 func (c CoreExpr) Name() string {
-	return c.Content.(string)
+	return c.content.(string)
+}
+
+func (c CoreExpr) Fn() CoreFunction {
+	return c.content.(CoreFunction)
+}
+
+func (c CoreExpr) App() CoreApplication {
+	return c.content.(CoreApplication)
 }
 
 func CNil() CoreExpr {
@@ -53,4 +75,20 @@ func CMult(a, b CoreExpr) CoreExpr {
 
 func CCons(a, b CoreExpr) CoreExpr {
 	return CoreExpr{ExprCons, []CoreExpr{a, b}}
+}
+
+func CFst(c CoreExpr) CoreExpr {
+	return CoreExpr{ExprFst, c}
+}
+
+func CSnd(c CoreExpr) CoreExpr {
+	return CoreExpr{ExprSnd, c}
+}
+
+func CFn(params []string, body CoreExpr) CoreExpr {
+	return CoreExpr{ExprFn, CoreFunction{params, body}}
+}
+
+func CApp(function CoreExpr, args []CoreExpr) CoreExpr {
+	return CoreExpr{ExprApp, CoreApplication{function, args}}
 }

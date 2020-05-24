@@ -17,7 +17,7 @@ func TestDesugarMult(t *testing.T) {
 }
 
 func TestDesugarList(t *testing.T) {
-	expr := Desugar(parser.Parse(tokenizer.Tokenize("(list 1 2 3)")))
+	expr := Desugar(parser.Parse(tokenizer.Tokenize("(lst 1 2 3)")))
 	expect := CCons(CNum(1), CCons(CNum(2), CCons(CNum(3), CNil())))
 	if !reflect.DeepEqual(expr, expect) {
 		t.Errorf("did not desugar list properly: expected %#v, but got %#v", expect, expr)

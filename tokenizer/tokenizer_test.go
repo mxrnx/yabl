@@ -71,7 +71,7 @@ func TestTokenizeList(t *testing.T) {
 func TestTokenizeListSugar(t *testing.T) {
 	tokens := Tokenize("'(1 2 3)")
 	expect := Token{Kind: TokenList, Children: []Token{
-		{Kind: TokenSym, Content: "list"},
+		{Kind: TokenSym, Content: "lst"},
 		{Kind: TokenNum, Content: "1"},
 		{Kind: TokenNum, Content: "2"},
 		{Kind: TokenNum, Content: "3"},

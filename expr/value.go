@@ -9,8 +9,25 @@ type Value struct {
 	Content interface{}
 }
 
+type ValueFunction struct {
+	Params []string
+	Body   CoreExpr
+}
+
 func (v Value) Num() int {
 	return v.Content.(int)
+}
+
+func (v Value) Fst() Value {
+	return v.Content.([]Value)[0]
+}
+
+func (v Value) Snd() Value {
+	return v.Content.([]Value)[1]
+}
+
+func (v Value) Func() ValueFunction {
+	return v.Content.(ValueFunction)
 }
 
 func (v Value) Pretty() string {
@@ -24,6 +41,9 @@ func (v Value) Pretty() string {
 	case ExprCons:
 		t := v.Content.([]Value)
 		return "(" + t[0].Pretty() + ", " + t[1].Pretty() + ")"
+	case ExprFn:
+		t := v.Content.(ValueFunction)
+		return "<fn: " + strconv.Itoa(len(t.Params)) + " Params>"
 	default:
 		panic("Could not prettify Value of unknown type: " + strconv.Itoa((int(v.Kind))))
 	}
@@ -43,4 +63,8 @@ func VBool(b bool) Value {
 
 func VCons(a Value, b Value) Value {
 	return Value{ExprCons, []Value{a, b}}
+}
+
+func VFn(params []string, body CoreExpr) Value {
+	return Value{ExprFn, ValueFunction{params, body}}
 }
