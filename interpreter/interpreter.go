@@ -19,50 +19,57 @@ func typeCheck(value Value, kind uint8) Value {
 	}
 }
 
-func interpret(coreExpr CoreExpr, env Environment, sto Store) Value {
+func interpret(coreExpr CoreExpr, env Environment, sto Store) (Value, Store) {
 	switch coreExpr.Kind {
 	case ExprFst:
-		return typeCheck(interpret(coreExpr.Expr(), env, sto), ExprCons).Fst()
+		valA, stoA := interpret(coreExpr.Expr(), env, sto)
+		return typeCheck(valA, ExprCons).Fst(), stoA
 	case ExprSnd:
-		return typeCheck(interpret(coreExpr.Expr(), env, sto), ExprCons).Snd()
+		valA, stoA := interpret(coreExpr.Expr(), env, sto)
+		return typeCheck(valA, ExprCons).Snd(), stoA
 	case ExprAdd:
-		a := typeCheck(interpret(coreExpr.Head(), env, sto), ExprNum)
-		b := typeCheck(interpret(coreExpr.Tail(), env, sto), ExprNum)
-		return VNum(a.Num() + b.Num())
+		valA, stoA := interpret(coreExpr.Head(), env, sto)
+		valB, stoB := interpret(coreExpr.Tail(), env, stoA)
+		return VNum(typeCheck(valA, ExprNum).Num() + typeCheck(valB, ExprNum).Num()), stoB
 	case ExprMult:
-		a := typeCheck(interpret(coreExpr.Head(), env, sto), ExprNum)
-		b := typeCheck(interpret(coreExpr.Tail(), env, sto), ExprNum)
-		return VNum(a.Num() * b.Num())
+		valA, stoA := interpret(coreExpr.Head(), env, sto)
+		valB, stoB := interpret(coreExpr.Tail(), env, stoA)
+		return VNum(typeCheck(valA, ExprNum).Num() * typeCheck(valB, ExprNum).Num()), stoB
 	case ExprCons:
-		return VCons(interpret(coreExpr.Head(), env, sto), interpret(coreExpr.Tail(), env, sto))
+		valA, stoA := interpret(coreExpr.Head(), env, sto)
+		valB, stoB := interpret(coreExpr.Tail(), env, stoA)
+		return VCons(valA, valB), stoB
 	case ExprNil:
-		return VNil()
+		return VNil(), sto
 	case ExprNum:
-		return VNum(coreExpr.Num())
+		return VNum(coreExpr.Num()), sto
 	case ExprBool:
-		return VBool(coreExpr.Bool())
+		return VBool(coreExpr.Bool()), sto
 	case ExprName:
-		return sto.fetch(env.lookup(coreExpr.Name()))
+		return sto.fetch(env.lookup(coreExpr.Name())), sto
 	case ExprFn:
 		f := coreExpr.Fn()
-		return VFn(f.Params, f.Body)
+		return VFn(f.Params, f.Body), sto
 	case ExprApp:
 		a := coreExpr.App()
-		f := typeCheck(interpret(a.Function, env, sto), ExprFn).Func()
+		valF, _ := interpret(a.Function, env, sto)
+		f := typeCheck(valF, ExprFn).Func()
 		envNew := Environment{}
 		stoNew := Store{}
 		for i, arg := range a.Args {
 			loc := newAddr()
 			envNew = append(envNew, Pointer{f.Params[i], loc})
-			stoNew = append(stoNew, Bind{loc, interpret(arg, env, sto)})
+			valArg, _ := interpret(arg, env, sto)
+			stoNew = append(stoNew, Bind{loc, valArg})
 
 		}
 		return interpret(f.Body, append(envNew, env...), append(stoNew, sto...))
 	}
 
-	return interpException("invalid coreExpr")
+	return interpException("invalid coreExpr"), nil
 }
 
 func Interpret(input string) Value {
-	return interpret(desugarer.Desugar(parser.Parse(tokenizer.Tokenize(input))), nil, nil)
+	value, _ := interpret(desugarer.Desugar(parser.Parse(tokenizer.Tokenize(input))), nil, nil)
+	return value
 }
