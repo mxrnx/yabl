@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"regexp"
 )
 
 func usage() {
@@ -40,6 +41,9 @@ func repl() {
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Print("o` ")
 		code, _ := reader.ReadString('\n')
+		if regexp.MustCompile(`^\s+$`).Match([]byte(code)) {
+			continue
+		}
 		log.Println(interpreter.Interpret(code).Pretty())
 	}
 }
