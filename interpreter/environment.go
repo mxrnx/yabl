@@ -3,13 +3,13 @@ package interpreter
 import . "github.com/knarka/yabl/expr"
 
 type Pointer struct {
-	name string
+	name    string
 	address int
 }
 
 type Bind struct {
 	address int
-	value Value
+	value   Value
 }
 
 type Environment []Pointer

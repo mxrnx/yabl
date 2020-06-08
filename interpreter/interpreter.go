@@ -11,30 +11,22 @@ func interpException(v string) Value {
 	panic("interpException: " + v)
 }
 
-func typeCheck(value Value, kind uint8) Value {
-	if value.Kind != kind {
-		panic("typeCheck failed!")
-	} else {
-		return value
-	}
-}
-
 func interpret(coreExpr CoreExpr, env Environment, sto Store) (Value, Store) {
 	switch coreExpr.Kind {
 	case ExprFst:
 		valA, stoA := interpret(coreExpr.Expr(), env, sto)
-		return typeCheck(valA, ExprCons).Fst(), stoA
+		return valA.Fst(), stoA
 	case ExprSnd:
 		valA, stoA := interpret(coreExpr.Expr(), env, sto)
-		return typeCheck(valA, ExprCons).Snd(), stoA
+		return valA.Snd(), stoA
 	case ExprAdd:
 		valA, stoA := interpret(coreExpr.Head(), env, sto)
 		valB, stoB := interpret(coreExpr.Tail(), env, stoA)
-		return VNum(typeCheck(valA, ExprNum).Num() + typeCheck(valB, ExprNum).Num()), stoB
+		return VNum(valA.Num() + valB.Num()), stoB
 	case ExprMult:
 		valA, stoA := interpret(coreExpr.Head(), env, sto)
 		valB, stoB := interpret(coreExpr.Tail(), env, stoA)
-		return VNum(typeCheck(valA, ExprNum).Num() * typeCheck(valB, ExprNum).Num()), stoB
+		return VNum(valA.Num() * valB.Num()), stoB
 	case ExprCons:
 		valA, stoA := interpret(coreExpr.Head(), env, sto)
 		valB, stoB := interpret(coreExpr.Tail(), env, stoA)
@@ -53,7 +45,7 @@ func interpret(coreExpr CoreExpr, env Environment, sto Store) (Value, Store) {
 	case ExprApp:
 		a := coreExpr.App()
 		valF, _ := interpret(a.Function, env, sto)
-		f := typeCheck(valF, ExprFn).Func()
+		f := valF.Func()
 		envNew := Environment{}
 		stoNew := Store{}
 		for i, arg := range a.Args {
